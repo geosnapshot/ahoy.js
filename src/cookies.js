@@ -1,5 +1,17 @@
 // https://www.quirksmode.org/js/cookies.html
 
+const supportsSameSiteNone = ua => {
+  return !(
+    ua.includes("iPhone OS 12_") || ua.includes("iPad; CPU OS 12_") || //iOS 12
+    ua.includes("Chrome/5") || ua.includes("Chrome/6") || //Chrome
+    (
+      ua.includes(" OS X 10_14_") &&
+      ua.includes("Version/") &&
+      ua.includes("Safari")
+    ) //Safari on MacOS 10.14
+  ); 
+};
+
 export default {
   set: function (name, value, ttl, domain) {
     let expires = "";
@@ -12,7 +24,14 @@ export default {
     if (domain) {
       cookieDomain = "; domain=" + domain;
     }
-    document.cookie = name + "=" + escape(value) + expires + cookieDomain + "; path=/";
+
+    cookie = name + "=" + escape(value) + expires + cookieDomain + "; path=/";
+
+    if (document.location.protocol) cookie = cookie + "; secure";
+    if (supportsSameSiteNone(navigator.userAgent))
+      cookie = cookie + "; SameSite=None";
+
+    document.cookie = cookie;
   },
   get: function (name) {
     let i, c;
